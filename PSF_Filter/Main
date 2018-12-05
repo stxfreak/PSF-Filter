@@ -1,0 +1,49 @@
+import pandas as pd
+
+def delete_header():
+
+    global local_file
+    local_file = input(r"Filepath: ")
+    with open(local_file, 'r') as fin:
+        data = fin.read().splitlines(True)
+    with open(local_file, 'w') as fout:
+        fout.writelines(data[1:])
+
+    print("Rapidstorm header removed.")
+
+def include_header():
+
+    global local_file
+    global output_file
+    with open(output_file, 'r') as original: data = original.read()
+    with open(output_file, 'w') as modified: modified.write('# <localizations insequence="true" repetitions="variable"><field identifier="Position-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="position in sample space in X" unit="nanometer" min="0 m" max="2.6398e-005 m" /><field identifier="Position-1-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="position in sample space in Y" unit="nanometer" min="0 m" max="2.8944e-005 m" /><field identifier="ImageNumber-0-0" syntax="integer" semantic="frame number" unit="frame" min="0 fr" /><field identifier="Amplitude-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="emission strength" unit="A/D count" /><field identifier="PSFWidth-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="PSF FWHM in X" unit="nanometer" /><field identifier="PSFWidth-1-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="PSF FWHM in Y" unit="nanometer" /><field identifier="FitResidues-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="fit residue chi square value" unit="dimensionless" /><field identifier="LocalBackground-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="local background" unit="A/D count" /></localizations>\n' + data)
+    print("Rapidstorm header added.")
+
+def load_local():
+
+    global local_file
+    global local
+    local = pd.read_csv(local_file, delimiter=" ",decimal = b".", usecols=[0,1,2,3,4,5,6,7])
+    print("Temp Dataframe loaded.")
+
+def replace_columns():
+
+    global local_file
+    global local
+    local.columns = ["x", "y", "Frame", "Emission Strength", "PSF FWHM X", "PSF FWHM Y", "Fit Residue", "LocalBackground" ]
+    print("Header added.")
+
+def filter_psf():
+
+    global local
+    global local2
+    global output_file
+
+
+    psf_lower = input("PSF lower limit: ")
+    psf_upper = input("PSF upper limit: ")
+    output_file = input(r'Outputfile: ')
+    local2 = local[(local['PSF FWHM X']  > int(psf_lower)) & (local['PSF FWHM X'] < int(psf_upper)) &
+                   (local['PSF FWHM Y']  > int(psf_lower)) & (local['PSF FWHM Y'] < int(psf_upper))]
+    local2.to_csv(output_file, header=None, index=None, sep=' ', mode='a')
+    print("PSF FWHM filtered to " + psf_lower + "-" + psf_upper)
